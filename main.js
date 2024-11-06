@@ -1,8 +1,10 @@
 import * as THREE from "three";
 import * as dat from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import floor from "./assets/floor.jpg";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-// field variables var fieldWidth = 400,  fieldHeight = 200;
+const plant = new URL("./assets/potted_plant_02_4k.gltf", import.meta.url);
 
 let paddle1DirX = 0;
 let paddle2DirX = 0;
@@ -30,6 +32,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000,
 );
+
+const textureLoader = new THREE.TextureLoader();
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -91,19 +95,16 @@ const pillarMaterial = new THREE.MeshStandardMaterial({
   color: 0x909acf,
 });
 
-const pillar1 = new THREE.Mesh(pillarGeometry, pillarMaterial);
-pillar1.castShadow = true;
-pillar1.position.x = 20;
-pillar1.position.z -= 5;
-scene.add(pillar1);
-
 const pillar2 = new THREE.Mesh(pillarGeometry, pillarMaterial);
 pillar2.position.x = 20;
 pillar2.position.z += 5;
 scene.add(pillar2);
 
 const groundGeomtery = new THREE.BoxGeometry(1000, 1000);
-const groundMaterial = new THREE.MeshStandardMaterial({ color: "#eef0e1" });
+const groundMaterial = new THREE.MeshStandardMaterial({
+  color: "#eef0e1",
+  map: textureLoader.load(floor),
+});
 const ground = new THREE.Mesh(groundGeomtery, groundMaterial);
 ground.rotation.x = -0.5 * Math.PI;
 ground.position.y = -10;
@@ -122,6 +123,35 @@ const sLightHelper = new THREE.SpotLightHelper(spotLight);
 scene.add(sLightHelper);
 
 scene.add(spotLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(30, 30, 30);
+scene.add(directionalLight);
+
+const dLightHelper = new THREE.DirectionalLightHelper(directionalLight);
+scene.add(dLightHelper);
+
+const assetLoader = new GLTFLoader();
+assetLoader.load(
+  plant.href,
+  (gltf) => {
+    const model = gltf.scene;
+    scene.add(model);
+    model.scale.set(8, 8, 8);
+    model.position.set(20, -5, -10);
+  },
+  undefined,
+  function (error) {
+    console.error(error);
+  },
+);
+
+const mousePosition = new THREE.Vector2();
+
+window.addEventListener("mousemove", (e) => {
+  mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mousePosition.y = (e.clientY / window.innerHeight) * 2 + 1;
+});
 
 function animate() {
   spotLight.angle = options.angle;
