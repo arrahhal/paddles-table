@@ -138,7 +138,7 @@ assetLoader.load(
     const model = gltf.scene;
     scene.add(model);
     model.scale.set(8, 8, 8);
-    model.position.set(20, -5, -10);
+    model.position.set(25, -9.5, -10);
   },
   undefined,
   function (error) {
