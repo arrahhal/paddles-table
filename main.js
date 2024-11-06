@@ -42,9 +42,6 @@ scene.add(orbit);
 camera.position.set(0, 8, 25);
 orbit.update();
 
-const axesHelper = new THREE.AxesHelper(5);
-scene.add(axesHelper);
-
 const planeGeomtry = new THREE.PlaneGeometry(20, 30);
 const planeMaterial = new THREE.MeshStandardMaterial({
   color: "darkgreen",
@@ -124,19 +121,17 @@ scene.add(ground);
 const ambientLight = new THREE.AmbientLight(0xffffff);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-directionalLight.position.set(-30, 30, 0);
-directionalLight.castShadow = true;
-gui.add(options, "cameraShadow", -10, 10);
-scene.add(directionalLight);
+// white spotlight shining from the side, modulated by a texture, casting a shadow
 
-const dLightShadowHelper = new THREE.CameraHelper(
-  directionalLight.shadow.camera,
-);
-scene.add(dLightShadowHelper);
+const spotLight = new THREE.SpotLight(0xffffff, 100);
+spotLight.position.set(0, 10, 0);
+spotLight.castShadow = true;
+scene.add(spotLight);
 
-const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-scene.add(dLightHelper);
+const sLightHelper = new THREE.SpotLightHelper(spotLight);
+scene.add(sLightHelper);
+
+scene.add(spotLight);
 
 function animate() {
   renderer.render(scene, camera);
@@ -145,6 +140,8 @@ function animate() {
   cpuPaddleLogic();
   playerPaddleLogic();
 }
+
+renderer.setAnimationLoop(animate);
 
 function resetBall(loser) {
   if (loser == 1) {
@@ -265,5 +262,3 @@ const Key = {
     delete this._pressed[event.keyCode];
   },
 };
-
-renderer.setAnimationLoop(animate);
