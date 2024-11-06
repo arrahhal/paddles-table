@@ -14,14 +14,14 @@ let ballSpeed = 0.1;
 
 const gui = new dat.GUI();
 const options = {
-  ballColor: "#00ff00",
-  paddle1: "#00ff00",
-  paddle2: "#00ff00",
-  pillar: "#c0ef0f",
-  cameraShadow: 10,
-  ballX: 10,
-  ballZ: 10,
+  angle: 1,
+  penumbra: 0,
+  intensity: 100,
 };
+
+gui.add(options, "angle", 0, 1);
+gui.add(options, "penumbra", 0, 1);
+gui.add(options, "intensity", 0, 200);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -66,16 +66,13 @@ ball.castShadow = true;
 ball.position.y += 0.5;
 
 scene.add(ball);
-gui.addColor(options, "ballColor").onChange((e) => {
-  ball.material.color.set(e);
-});
 
 const paddleGeometry = new THREE.BoxGeometry(3, 1, 1);
 const paddleMaterial1 = new THREE.MeshStandardMaterial({
-  color: options.paddle1,
+  color: 0xfff0fc,
 });
 const paddleMaterial2 = new THREE.MeshStandardMaterial({
-  color: options.paddle2,
+  color: 0xfff0fc,
 });
 const paddle1 = new THREE.Mesh(paddleGeometry, paddleMaterial1);
 const paddle2 = new THREE.Mesh(paddleGeometry, paddleMaterial2);
@@ -86,15 +83,12 @@ paddle1.position.z = 15;
 paddle2.position.y += 0.5;
 paddle2.position.z = -15;
 
-gui.addColor(options, "paddle1").onChange((e) => paddle1.material.color.set(e));
-gui.addColor(options, "paddle2").onChange((e) => paddle2.material.color.set(e));
-
 scene.add(paddle1);
 scene.add(paddle2);
 
 const pillarGeometry = new THREE.BoxGeometry(2, 20, 2);
 const pillarMaterial = new THREE.MeshStandardMaterial({
-  color: options.pillar,
+  color: 0x909acf,
 });
 
 const pillar1 = new THREE.Mesh(pillarGeometry, pillarMaterial);
@@ -108,8 +102,6 @@ pillar2.position.x = 20;
 pillar2.position.z += 5;
 scene.add(pillar2);
 
-gui.addColor(options, "pillar").onChange((e) => pillarMaterial.color.set(e));
-
 const groundGeomtery = new THREE.BoxGeometry(1000, 1000);
 const groundMaterial = new THREE.MeshStandardMaterial({ color: "#eef0e1" });
 const ground = new THREE.Mesh(groundGeomtery, groundMaterial);
@@ -120,8 +112,6 @@ scene.add(ground);
 
 const ambientLight = new THREE.AmbientLight(0xffffff);
 scene.add(ambientLight);
-
-// white spotlight shining from the side, modulated by a texture, casting a shadow
 
 const spotLight = new THREE.SpotLight(0xffffff, 100);
 spotLight.position.set(0, 10, 0);
@@ -134,11 +124,17 @@ scene.add(sLightHelper);
 scene.add(spotLight);
 
 function animate() {
-  renderer.render(scene, camera);
+  spotLight.angle = options.angle;
+  spotLight.penumbra = options.penumbra;
+  spotLight.intensity = options.intensity;
+  sLightHelper.update();
+
   ballLogic();
   paddleLogic();
   cpuPaddleLogic();
   playerPaddleLogic();
+
+  renderer.render(scene, camera);
 }
 
 renderer.setAnimationLoop(animate);
