@@ -38,6 +38,7 @@ const textureLoader = new THREE.TextureLoader();
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
+renderer.setClearColor(0xffffff, 1);
 document.body.appendChild(renderer.domElement);
 
 const orbit = new OrbitControls(camera, renderer.domElement);
@@ -45,6 +46,93 @@ scene.add(orbit);
 
 camera.position.set(0, 8, 25);
 orbit.update();
+
+const ambientLight = new THREE.AmbientLight(0xffffff);
+ambientLight.position.set(camera.position);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.y = 15;
+scene.add(directionalLight);
+
+const dLightHelper = new THREE.DirectionalLightHelper(directionalLight);
+scene.add(dLightHelper);
+
+const spotLight = new THREE.SpotLight(0xffffff, 100);
+spotLight.position.set(0, 10, 0);
+spotLight.castShadow = true;
+scene.add(spotLight);
+
+const sLightHelper = new THREE.SpotLightHelper(spotLight);
+scene.add(sLightHelper);
+
+scene.add(spotLight);
+
+const floorTexture = textureLoader.load(floor);
+floorTexture.wrapS = THREE.RepeatWrapping;
+floorTexture.wrapT = THREE.RepeatWrapping;
+floorTexture.repeat.set(20, 20);
+
+const groundGeomtery = new THREE.BoxGeometry(100, 100);
+const groundMaterial = new THREE.MeshStandardMaterial({
+  color: "#eef0e1",
+  map: floorTexture,
+});
+const ground = new THREE.Mesh(groundGeomtery, groundMaterial);
+ground.rotation.x = -0.5 * Math.PI;
+ground.position.y = -10;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const wallGroup = new THREE.Group();
+scene.add(wallGroup);
+
+const frontWall = new THREE.Mesh(
+  new THREE.BoxGeometry(100, 50, 0.001),
+  new THREE.MeshLambertMaterial({ color: "green" }),
+);
+frontWall.position.z = -50;
+
+const backWall = new THREE.Mesh(
+  new THREE.BoxGeometry(100, 50, 0.001),
+  new THREE.MeshLambertMaterial({ color: "orange" }),
+);
+backWall.position.z = 50;
+
+const leftWall = new THREE.Mesh(
+  new THREE.BoxGeometry(100, 50, 0.001),
+  new THREE.MeshLambertMaterial({
+    color: "red",
+  }),
+);
+leftWall.position.x = -50;
+leftWall.rotation.y = Math.PI / 2;
+
+const rightWall = new THREE.Mesh(
+  new THREE.BoxGeometry(100, 50, 0.001),
+  new THREE.MeshLambertMaterial({
+    color: "yellow",
+  }),
+);
+rightWall.position.x = 50;
+rightWall.rotation.y = Math.PI / 2;
+
+wallGroup.add(frontWall, backWall, leftWall, rightWall);
+
+// for (let i = 0; i < wallGroup.children.length; i++) {
+//   wallGroup.children[i].BBox = new THREE.Box3();
+//   wallGroup.children[i].BBox.setFromObject(wallGroup.children[i]);
+// }
+// Create the ceiling
+// const ceilingGeometry = new THREE.PlaneBufferGeometry(50, 50);
+// const ceilingMaterial = new THREE.MeshLambertMaterial({
+//   color: "blue",
+// });
+
+// const ceilingPlane = new THREE.Mesh(ceilingGeometry, ceilingMaterial); // create ceiling with geometry and material
+// ceilingPlane.rotation.x = Math.PI / 2; // this is 90 degrees
+// ceilingPlane.position.y = 12;
+// scene.add(ceilingPlane);
 
 const planeGeomtry = new THREE.PlaneGeometry(20, 30);
 const planeMaterial = new THREE.MeshStandardMaterial({
@@ -99,37 +187,6 @@ const pillar2 = new THREE.Mesh(pillarGeometry, pillarMaterial);
 pillar2.position.x = 20;
 pillar2.position.z += 5;
 scene.add(pillar2);
-
-const groundGeomtery = new THREE.BoxGeometry(1000, 1000);
-const groundMaterial = new THREE.MeshStandardMaterial({
-  color: "#eef0e1",
-  map: textureLoader.load(floor),
-});
-const ground = new THREE.Mesh(groundGeomtery, groundMaterial);
-ground.rotation.x = -0.5 * Math.PI;
-ground.position.y = -10;
-ground.receiveShadow = true;
-scene.add(ground);
-
-const ambientLight = new THREE.AmbientLight(0xffffff);
-scene.add(ambientLight);
-
-const spotLight = new THREE.SpotLight(0xffffff, 100);
-spotLight.position.set(0, 10, 0);
-spotLight.castShadow = true;
-scene.add(spotLight);
-
-const sLightHelper = new THREE.SpotLightHelper(spotLight);
-scene.add(sLightHelper);
-
-scene.add(spotLight);
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(30, 30, 30);
-scene.add(directionalLight);
-
-const dLightHelper = new THREE.DirectionalLightHelper(directionalLight);
-scene.add(dLightHelper);
 
 const assetLoader = new GLTFLoader();
 assetLoader.load(
