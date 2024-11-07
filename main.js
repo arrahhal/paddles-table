@@ -42,6 +42,8 @@ renderer.shadowMap.enabled = true;
 renderer.setClearColor(0xffffff, 1);
 document.body.appendChild(renderer.domElement);
 
+let movePaddleLeft = false;
+let movePaddleRight = false;
 let moveForward = false;
 let moveBackward = false;
 let moveLeft = false;
@@ -58,8 +60,6 @@ const raycaster = new THREE.Raycaster(
 let prevTime = performance.now();
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
-const vertex = new THREE.Vector3();
-const color = new THREE.Color();
 
 const controls = new PointerLockControls(camera, document.body);
 
@@ -84,6 +84,14 @@ scene.add(controls.object);
 
 const onKeyDown = function (event) {
   switch (event.code) {
+    case "ArrowRight":
+      movePaddleRight = true;
+      break;
+
+    case "ArrowLeft":
+      movePaddleLeft = true;
+      break;
+
     case "KeyW":
       moveForward = true;
       break;
@@ -101,7 +109,7 @@ const onKeyDown = function (event) {
       break;
 
     case "Space":
-      if (canJump === true) velocity.y += 350;
+      if (canJump === true) velocity.y += 200;
       canJump = false;
       break;
   }
@@ -109,6 +117,14 @@ const onKeyDown = function (event) {
 
 const onKeyUp = function (event) {
   switch (event.code) {
+    case "ArrowRight":
+      movePaddleRight = false;
+      break;
+
+    case "ArrowLeft":
+      movePaddleLeft = false;
+      break;
+
     case "KeyW":
       moveForward = false;
       break;
@@ -376,7 +392,7 @@ function animate() {
   ballLogic();
   paddleLogic();
   cpuPaddleLogic();
-  // playerPaddleLogic();
+  playerPaddleLogic();
 
   renderer.render(scene, camera);
 }
@@ -450,21 +466,21 @@ function cpuPaddleLogic() {
 }
 
 function playerPaddleLogic() {
-  // if (Key.isDown(Key.left)) {
-  //   if (paddle1.position.x > -15) {
-  //     paddle1DirX = -paddleSpeed * 0.5;
-  //   } else {
-  //     paddle1DirX = 0;
-  //   }
-  // } else if (Key.isDown(Key.right)) {
-  //   if (paddle1.position.x < 15) {
-  //     paddle1DirX = paddleSpeed * 0.5;
-  //   } else {
-  //     paddle1DirX = 0;
-  //   }
-  // } else {
-  //   paddle1DirX = 0;
-  // }
+  if (movePaddleLeft) {
+    if (paddle1.position.x > -15) {
+      paddle1DirX = -paddleSpeed * 0.5;
+    } else {
+      paddle1DirX = 0;
+    }
+  } else if (movePaddleRight) {
+    if (paddle1.position.x < 15) {
+      paddle1DirX = paddleSpeed * 0.5;
+    } else {
+      paddle1DirX = 0;
+    }
+  } else {
+    paddle1DirX = 0;
+  }
 
   paddle1.position.x += paddle1DirX;
 }
