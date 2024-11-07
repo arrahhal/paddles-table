@@ -2,9 +2,9 @@ import * as THREE from "three";
 import * as dat from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import floor from "./assets/floor.jpg";
+import ceilingImg from "./assets/ceiling.jpg";
+import wallImg from "./assets/wall.jpg";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-
-const plant = new URL("./assets/potted_plant_02_4k.gltf", import.meta.url);
 
 let paddle1DirX = 0;
 let paddle2DirX = 0;
@@ -84,37 +84,62 @@ ground.position.y = -10;
 ground.receiveShadow = true;
 scene.add(ground);
 
+const ceilingTexture = textureLoader.load(ceilingImg);
+ceilingTexture.wrapS = THREE.RepeatWrapping;
+ceilingTexture.wrapT = THREE.RepeatWrapping;
+ceilingTexture.repeat.set(20, 20);
+
+const ceilingGeomtery = new THREE.BoxGeometry(100, 100);
+const ceilingMaterial = new THREE.MeshStandardMaterial({
+  color: "#eef0e1",
+  map: ceilingTexture,
+});
+const ceiling = new THREE.Mesh(ceilingGeomtery, ceilingMaterial);
+ceiling.rotation.x = -0.5 * Math.PI;
+ceiling.position.y = 40;
+ceiling.receiveShadow = true;
+scene.add(ceiling);
+
 const wallGroup = new THREE.Group();
 scene.add(wallGroup);
 
+const wallTexture = textureLoader.load(wallImg);
+wallTexture.wrapS = THREE.RepeatWrapping;
+wallTexture.wrapT = THREE.RepeatWrapping;
+wallTexture.repeat.set(20, 20);
+
 const frontWall = new THREE.Mesh(
   new THREE.BoxGeometry(100, 50, 0.001),
-  new THREE.MeshLambertMaterial({ color: "green" }),
+  new THREE.MeshLambertMaterial({ map: wallTexture }),
 );
 frontWall.position.z = -50;
+frontWall.position.y = 15;
 
 const backWall = new THREE.Mesh(
   new THREE.BoxGeometry(100, 50, 0.001),
-  new THREE.MeshLambertMaterial({ color: "orange" }),
+  new THREE.MeshLambertMaterial({ map: wallTexture }),
 );
 backWall.position.z = 50;
+backWall.position.y = 15;
 
 const leftWall = new THREE.Mesh(
   new THREE.BoxGeometry(100, 50, 0.001),
   new THREE.MeshLambertMaterial({
-    color: "red",
+    map: wallTexture,
   }),
 );
 leftWall.position.x = -50;
+leftWall.position.y = 15;
 leftWall.rotation.y = Math.PI / 2;
 
 const rightWall = new THREE.Mesh(
   new THREE.BoxGeometry(100, 50, 0.001),
   new THREE.MeshLambertMaterial({
-    color: "yellow",
+    map: wallTexture,
   }),
 );
 rightWall.position.x = 50;
+rightWall.position.y = 15;
 rightWall.rotation.y = Math.PI / 2;
 
 wallGroup.add(frontWall, backWall, leftWall, rightWall);
@@ -188,20 +213,21 @@ pillar2.position.x = 20;
 pillar2.position.z += 5;
 scene.add(pillar2);
 
-const assetLoader = new GLTFLoader();
-assetLoader.load(
-  plant.href,
-  (gltf) => {
-    const model = gltf.scene;
-    scene.add(model);
-    model.scale.set(8, 8, 8);
-    model.position.set(25, -9.5, -10);
-  },
-  undefined,
-  function (error) {
-    console.error(error);
-  },
-);
+// const assetLoader = new GLTFLoader();
+// assetLoader.load(
+//   wallLeather.href,
+//   (gltf) => {
+//     const model = gltf.scene;
+//     scene.add(model);
+//     frontWall.material.map = model;
+//     model.scale.set(8, 8, 8);
+//     model.position.set(25, -9.5, -10);
+//   },
+//   undefined,
+//   function (error) {
+//     console.error(error);
+//   },
+// );
 
 const mousePosition = new THREE.Vector2();
 
