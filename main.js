@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import * as dat from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import floor from "./assets/floor.jpg";
 import ceilingImg from "./assets/ceiling.jpg";
 import wallImg from "./assets/wall.jpg";
@@ -41,11 +42,99 @@ renderer.shadowMap.enabled = true;
 renderer.setClearColor(0xffffff, 1);
 document.body.appendChild(renderer.domElement);
 
-const orbit = new OrbitControls(camera, renderer.domElement);
-scene.add(orbit);
+let moveForward = false;
+let moveBackward = false;
+let moveLeft = false;
+let moveRight = false;
+let canJump = false;
+const objects = [];
+const raycaster = new THREE.Raycaster(
+  new THREE.Vector3(),
+  new THREE.Vector3(0, -1, 0),
+  0,
+  10,
+);
+
+let prevTime = performance.now();
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+const vertex = new THREE.Vector3();
+const color = new THREE.Color();
+
+const controls = new PointerLockControls(camera, document.body);
+
+const blocker = document.getElementById("blocker");
+const instructions = document.getElementById("instructions");
+
+instructions.addEventListener("click", function () {
+  controls.lock();
+});
+
+controls.addEventListener("lock", function () {
+  instructions.style.display = "none";
+  blocker.style.display = "none";
+});
+
+controls.addEventListener("unlock", function () {
+  blocker.style.display = "block";
+  instructions.style.display = "";
+});
+
+scene.add(controls.object);
+
+const onKeyDown = function (event) {
+  switch (event.code) {
+    case "KeyW":
+      moveForward = true;
+      break;
+
+    case "KeyA":
+      moveLeft = true;
+      break;
+
+    case "KeyS":
+      moveBackward = true;
+      break;
+
+    case "KeyD":
+      moveRight = true;
+      break;
+
+    case "Space":
+      if (canJump === true) velocity.y += 350;
+      canJump = false;
+      break;
+  }
+};
+
+const onKeyUp = function (event) {
+  switch (event.code) {
+    case "KeyW":
+      moveForward = false;
+      break;
+
+    case "KeyA":
+      moveLeft = false;
+      break;
+
+    case "KeyS":
+      moveBackward = false;
+      break;
+
+    case "KeyD":
+      moveRight = false;
+      break;
+  }
+};
+
+document.addEventListener("keydown", onKeyDown);
+document.addEventListener("keyup", onKeyUp);
+
+// const orbit = new OrbitControls(camera, renderer.domElement);
+// scene.add(orbit);
 
 camera.position.set(0, 8, 25);
-orbit.update();
+// orbit.update();
 
 const ambientLight = new THREE.AmbientLight(0xffffff);
 ambientLight.position.set(camera.position);
@@ -242,10 +331,52 @@ function animate() {
   spotLight.intensity = options.intensity;
   sLightHelper.update();
 
+  const time = performance.now();
+  if (controls.isLocked === true) {
+    raycaster.ray.origin.copy(controls.object.position);
+    raycaster.ray.origin.y -= 10;
+
+    const intersections = raycaster.intersectObjects(objects, false);
+
+    const onObject = intersections.length > 0;
+
+    const delta = (time - prevTime) / 1000;
+
+    velocity.x -= velocity.x * 10.0 * delta;
+    velocity.z -= velocity.z * 10.0 * delta;
+
+    velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+
+    direction.z = Number(moveForward) - Number(moveBackward);
+    direction.x = Number(moveRight) - Number(moveLeft);
+    direction.normalize(); // this ensures consistent movements in all directions
+
+    if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
+    if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
+
+    if (onObject === true) {
+      velocity.y = Math.max(0, velocity.y);
+      canJump = true;
+    }
+
+    controls.moveRight(-velocity.x * delta);
+    controls.moveForward(-velocity.z * delta);
+
+    controls.object.position.y += velocity.y * delta; // new behavior
+
+    if (controls.object.position.y < 10) {
+      velocity.y = 0;
+      controls.object.position.y = 10;
+
+      canJump = true;
+    }
+  }
+  prevTime = time;
+
   ballLogic();
   paddleLogic();
   cpuPaddleLogic();
-  playerPaddleLogic();
+  // playerPaddleLogic();
 
   renderer.render(scene, camera);
 }
@@ -319,55 +450,55 @@ function cpuPaddleLogic() {
 }
 
 function playerPaddleLogic() {
-  if (Key.isDown(Key.left)) {
-    if (paddle1.position.x > -15) {
-      paddle1DirX = -paddleSpeed * 0.5;
-    } else {
-      paddle1DirX = 0;
-    }
-  } else if (Key.isDown(Key.right)) {
-    if (paddle1.position.x < 15) {
-      paddle1DirX = paddleSpeed * 0.5;
-    } else {
-      paddle1DirX = 0;
-    }
-  } else {
-    paddle1DirX = 0;
-  }
+  // if (Key.isDown(Key.left)) {
+  //   if (paddle1.position.x > -15) {
+  //     paddle1DirX = -paddleSpeed * 0.5;
+  //   } else {
+  //     paddle1DirX = 0;
+  //   }
+  // } else if (Key.isDown(Key.right)) {
+  //   if (paddle1.position.x < 15) {
+  //     paddle1DirX = paddleSpeed * 0.5;
+  //   } else {
+  //     paddle1DirX = 0;
+  //   }
+  // } else {
+  //   paddle1DirX = 0;
+  // }
 
   paddle1.position.x += paddle1DirX;
 }
 
-window.addEventListener(
-  "keyup",
-  function (event) {
-    Key.onKeyup(event);
-  },
-  false,
-);
-window.addEventListener(
-  "keydown",
-  function (event) {
-    Key.onKeydown(event);
-  },
-  false,
-);
-
-const Key = {
-  _pressed: {},
-
-  left: 37,
-  right: 39,
-
-  isDown: function (keyCode) {
-    return this._pressed[keyCode];
-  },
-
-  onKeydown: function (event) {
-    this._pressed[event.keyCode] = true;
-  },
-
-  onKeyup: function (event) {
-    delete this._pressed[event.keyCode];
-  },
-};
+// window.addEventListener(
+//   "keyup",
+//   function (event) {
+//     Key.onKeyup(event);
+//   },
+//   false,
+// );
+// window.addEventListener(
+//   "keydown",
+//   function (event) {
+//     Key.onKeydown(event);
+//   },
+//   false,
+// );
+//
+// const Key = {
+//   _pressed: {},
+//
+//   left: 37,
+//   right: 39,
+//
+//   isDown: function (keyCode) {
+//     return this._pressed[keyCode];
+//   },
+//
+//   onKeydown: function (event) {
+//     this._pressed[event.keyCode] = true;
+//   },
+//
+//   onKeyup: function (event) {
+//     delete this._pressed[event.keyCode];
+//   },
+// };
