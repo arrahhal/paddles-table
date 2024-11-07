@@ -341,6 +341,15 @@ window.addEventListener("mousemove", (e) => {
   mousePosition.y = (e.clientY / window.innerHeight) * 2 + 1;
 });
 
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+window.addEventListener("resize", onWindowResize);
+
 function animate() {
   spotLight.angle = options.angle;
   spotLight.penumbra = options.penumbra;
@@ -484,37 +493,3 @@ function playerPaddleLogic() {
 
   paddle1.position.x += paddle1DirX;
 }
-
-// window.addEventListener(
-//   "keyup",
-//   function (event) {
-//     Key.onKeyup(event);
-//   },
-//   false,
-// );
-// window.addEventListener(
-//   "keydown",
-//   function (event) {
-//     Key.onKeydown(event);
-//   },
-//   false,
-// );
-//
-// const Key = {
-//   _pressed: {},
-//
-//   left: 37,
-//   right: 39,
-//
-//   isDown: function (keyCode) {
-//     return this._pressed[keyCode];
-//   },
-//
-//   onKeydown: function (event) {
-//     this._pressed[event.keyCode] = true;
-//   },
-//
-//   onKeyup: function (event) {
-//     delete this._pressed[event.keyCode];
-//   },
-// };
