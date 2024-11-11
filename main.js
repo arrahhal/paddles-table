@@ -1,10 +1,10 @@
 import * as THREE from "three";
 import * as dat from "dat.gui";
+import { createWall, createWallSpotlight } from "./setup";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import floor from "./assets/floor.jpg";
 import ceilingImg from "./assets/ceiling.jpg";
-import wallImg from "./assets/wall.jpg";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 let paddle1DirX = 0;
@@ -192,7 +192,7 @@ scene.add(ground);
 const ceilingTexture = textureLoader.load(ceilingImg);
 ceilingTexture.wrapS = THREE.RepeatWrapping;
 ceilingTexture.wrapT = THREE.RepeatWrapping;
-ceilingTexture.repeat.set(20, 20);
+ceilingTexture.repeat.set(10, 10);
 
 const ceilingGeomtery = new THREE.BoxGeometry(100, 100);
 const ceilingMaterial = new THREE.MeshStandardMaterial({
@@ -208,61 +208,12 @@ scene.add(ceiling);
 const wallGroup = new THREE.Group();
 scene.add(wallGroup);
 
-const wallTexture = textureLoader.load(wallImg);
-wallTexture.wrapS = THREE.RepeatWrapping;
-wallTexture.wrapT = THREE.RepeatWrapping;
-wallTexture.repeat.set(20, 20);
-
-const frontWall = new THREE.Mesh(
-  new THREE.BoxGeometry(100, 50, 0.001),
-  new THREE.MeshLambertMaterial({ map: wallTexture }),
-);
-frontWall.position.z = -50;
-frontWall.position.y = 15;
-
-const backWall = new THREE.Mesh(
-  new THREE.BoxGeometry(100, 50, 0.001),
-  new THREE.MeshLambertMaterial({ map: wallTexture }),
-);
-backWall.position.z = 50;
-backWall.position.y = 15;
-
-const leftWall = new THREE.Mesh(
-  new THREE.BoxGeometry(100, 50, 0.001),
-  new THREE.MeshLambertMaterial({
-    map: wallTexture,
-  }),
-);
-leftWall.position.x = -50;
-leftWall.position.y = 15;
-leftWall.rotation.y = Math.PI / 2;
-
-const rightWall = new THREE.Mesh(
-  new THREE.BoxGeometry(100, 50, 0.001),
-  new THREE.MeshLambertMaterial({
-    map: wallTexture,
-  }),
-);
-rightWall.position.x = 50;
-rightWall.position.y = 15;
-rightWall.rotation.y = Math.PI / 2;
+const frontWall = createWall({ z: -50, y: 15 });
+const backWall = createWall({ z: 50, y: 15 });
+const leftWall = createWall({ x: -50, y: 15 }, true);
+const rightWall = createWall({ x: 50, y: 15 }, true);
 
 wallGroup.add(frontWall, backWall, leftWall, rightWall);
-
-// for (let i = 0; i < wallGroup.children.length; i++) {
-//   wallGroup.children[i].BBox = new THREE.Box3();
-//   wallGroup.children[i].BBox.setFromObject(wallGroup.children[i]);
-// }
-// Create the ceiling
-// const ceilingGeometry = new THREE.PlaneBufferGeometry(50, 50);
-// const ceilingMaterial = new THREE.MeshLambertMaterial({
-//   color: "blue",
-// });
-
-// const ceilingPlane = new THREE.Mesh(ceilingGeometry, ceilingMaterial); // create ceiling with geometry and material
-// ceilingPlane.rotation.x = Math.PI / 2; // this is 90 degrees
-// ceilingPlane.position.y = 12;
-// scene.add(ceilingPlane);
 
 const planeGeomtry = new THREE.PlaneGeometry(20, 30);
 const planeMaterial = new THREE.MeshStandardMaterial({
@@ -317,22 +268,6 @@ const pillar2 = new THREE.Mesh(pillarGeometry, pillarMaterial);
 pillar2.position.x = 20;
 pillar2.position.z += 5;
 scene.add(pillar2);
-
-// const assetLoader = new GLTFLoader();
-// assetLoader.load(
-//   wallLeather.href,
-//   (gltf) => {
-//     const model = gltf.scene;
-//     scene.add(model);
-//     frontWall.material.map = model;
-//     model.scale.set(8, 8, 8);
-//     model.position.set(25, -9.5, -10);
-//   },
-//   undefined,
-//   function (error) {
-//     console.error(error);
-//   },
-// );
 
 const mousePosition = new THREE.Vector2();
 
