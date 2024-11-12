@@ -35,7 +35,7 @@ const camera = new THREE.PerspectiveCamera(
 
 const textureLoader = new THREE.TextureLoader();
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.setClearColor(0xffffff, 1);
