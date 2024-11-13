@@ -4,6 +4,8 @@ import { PointerLockControls } from "three/addons/controls/PointerLockControls.j
 import floor from "./assets/floor.jpg";
 import ceilingImg from "./assets/ceiling.jpg";
 import wallImg from "./assets/wall.jpg";
+import loadCeilingLampModel from "./modules/ceilingLamp";
+import loadPhotoFrame from "./modules/photoFrame";
 
 let intersection = false;
 let paddle1DirX = 0;
@@ -104,12 +106,15 @@ function createWall({ x = 0, y = 0, z = 0 }, isRotated = false) {
   wall.position.y = y;
   wall.position.z = z;
   wall.geometry.computeBoundingBox();
+  wall.receiveShadow = true;
+  wall.castShadow = true;
 
-  wall.bb = new THREE.Box3().setFromObject(wall); // I'll use this object to detect collistions
   return wall;
 }
 
 const frontWall = createWall({ z: -50, y: 15 });
+loadPhotoFrame(scene, frontWall);
+
 const backWall = createWall({ z: 50, y: 15 });
 const leftWall = createWall({ x: -50, y: 15 }, true);
 const rightWall = createWall({ x: 50, y: 15 }, true);
@@ -173,16 +178,6 @@ scene.add(directionalLight);
 const dLightHelper = new THREE.DirectionalLightHelper(directionalLight);
 scene.add(dLightHelper);
 
-const spotLight = new THREE.SpotLight(0xffffff, 100);
-spotLight.position.set(0, 10, 0);
-spotLight.castShadow = true;
-scene.add(spotLight);
-
-const sLightHelper = new THREE.SpotLightHelper(spotLight);
-scene.add(sLightHelper);
-
-scene.add(spotLight);
-
 const floorTexture = textureLoader.load(floor);
 floorTexture.wrapS = THREE.RepeatWrapping;
 floorTexture.wrapT = THREE.RepeatWrapping;
@@ -214,6 +209,7 @@ ceiling.rotation.x = -0.5 * Math.PI;
 ceiling.position.y = 40;
 ceiling.receiveShadow = true;
 scene.add(ceiling);
+loadCeilingLampModel(scene, ceiling);
 
 const planeGeomtry = new THREE.PlaneGeometry(20, 30);
 const planeMaterial = new THREE.MeshStandardMaterial({
@@ -331,11 +327,6 @@ let prevPosition = new THREE.Vector3();
 prevPosition.copy(controls.object.position);
 
 function animate() {
-  spotLight.angle = options.angle;
-  spotLight.penumbra = options.penumbra;
-  spotLight.intensity = options.intensity;
-  sLightHelper.update();
-
   playerBox.setFromCenterAndSize(
     new THREE.Vector3(
       controls.object.position.x,
