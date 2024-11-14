@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader";
+import { gui, options } from "./gui";
 
 export default function loadCeilingLampModel(scene, ceiling) {
   const loader = new GLTFLoader();
@@ -18,6 +19,10 @@ export default function loadCeilingLampModel(scene, ceiling) {
     sLight.castShadow = true;
 
     const sLightHelper = new THREE.SpotLightHelper(sLight, 0xffffff);
+    sLightHelper.visible = options.enableSpotLightHelper;
+    gui
+      .add(options, "enableSpotLightHelper")
+      .onChange((e) => (sLightHelper.visible = e));
     scene.add(lamp, sLight, sLightHelper);
   });
 }

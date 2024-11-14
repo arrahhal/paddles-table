@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import * as dat from "dat.gui";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
+import { gui, options } from "./modules/gui";
 import floor from "./assets/floor.jpg";
 import ceilingImg from "./assets/ceiling.jpg";
 import wallImg from "./assets/wall.jpg";
@@ -14,18 +14,7 @@ let paddleSpeed = 0.2;
 
 let ballDirX = 1;
 let ballDirZ = 1;
-let ballSpeed = 0.1;
-
-const gui = new dat.GUI();
-const options = {
-  angle: 1,
-  penumbra: 0,
-  intensity: 100,
-};
-
-gui.add(options, "angle", 0, 1);
-gui.add(options, "penumbra", 0, 1);
-gui.add(options, "intensity", 0, 200);
+let ballSpeed = options.ballSpeed;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -39,12 +28,13 @@ const textureLoader = new THREE.TextureLoader();
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = options.shadow;
 renderer.setClearColor(0xffffff, 1);
 document.body.appendChild(renderer.domElement);
 
 const playerBox = new THREE.Box3();
 const helper = new THREE.Box3Helper(playerBox, 0xffff00);
+helper.visible = options.enableHelpers;
 scene.add(helper);
 
 let movePaddleLeft = false;
@@ -165,7 +155,9 @@ dLight.shadow.camera.scale.y = 2;
 scene.add(dLight);
 
 const dLightShadowHelper = new THREE.CameraHelper(dLight.shadow.camera);
+dLightShadowHelper.visible = options.enableHelpers;
 const dLightHelper = new THREE.DirectionalLightHelper(dLight);
+dLightHelper.visible = options.enableHelpers;
 scene.add(dLightHelper, dLightShadowHelper);
 
 const floorTexture = textureLoader.load(floor);
@@ -300,6 +292,23 @@ function onPointerMove(event) {
 }
 
 window.addEventListener("pointermove", onPointerMove);
+
+gui.add(options, "enableHelpers").onChange((e) => {
+  helper.visible = e;
+  dLightHelper.visible = e;
+  dLightShadowHelper.visible = e;
+});
+gui.add(options, "shadow").onChange((e) => {
+  renderer.shadowMap.enabled = e;
+});
+gui
+  .add(options, "ballSpeed")
+  .min(0.05)
+  .max(0.2)
+  .step(0.01)
+  .onChange((e) => {
+    ballSpeed = e;
+  });
 
 let prevPosition = new THREE.Vector3();
 prevPosition.copy(controls.object.position);
