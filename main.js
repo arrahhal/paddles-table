@@ -121,18 +121,6 @@ const rightWall = createWall({ x: 50, y: 15 }, true);
 
 wallGroup.add(frontWall, backWall, leftWall, rightWall);
 
-function checkCollision() {
-  const playerBB = new THREE.Box3();
-  playerBB.setFromCenterAndSize(
-    controls.object.position,
-    new THREE.Vector3(1, 1, 1),
-  );
-  wallGroup.children.forEach((wall) => {
-    if (playerBB.intersectsBox(wall.bb)) return true;
-    return false;
-  });
-}
-
 const onKeyUp = function (event) {
   switch (event.code) {
     case "ArrowRight":
@@ -161,22 +149,24 @@ const onKeyUp = function (event) {
   }
 };
 
-// const orbit = new OrbitControls(camera, renderer.domElement);
-// scene.add(orbit);
-
 camera.position.set(0, 8, 25);
-// orbit.update();
 
 const ambientLight = new THREE.AmbientLight(0xffffff);
 ambientLight.position.set(camera.position);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.y = 15;
-scene.add(directionalLight);
+const dLight = new THREE.DirectionalLight(0xffffff, 1);
+dLight.removeEventListener;
+dLight.position.y = 30;
+dLight.position.x = 45;
+dLight.castShadow = true;
+dLight.shadow.camera.scale.x = 3;
+dLight.shadow.camera.scale.y = 2;
+scene.add(dLight);
 
-const dLightHelper = new THREE.DirectionalLightHelper(directionalLight);
-scene.add(dLightHelper);
+const dLightShadowHelper = new THREE.CameraHelper(dLight.shadow.camera);
+const dLightHelper = new THREE.DirectionalLightHelper(dLight);
+scene.add(dLightHelper, dLightShadowHelper);
 
 const floorTexture = textureLoader.load(floor);
 floorTexture.wrapS = THREE.RepeatWrapping;
@@ -185,7 +175,6 @@ floorTexture.repeat.set(20, 20);
 
 const groundGeomtery = new THREE.BoxGeometry(100, 100);
 const groundMaterial = new THREE.MeshStandardMaterial({
-  color: "#eef0e1",
   map: floorTexture,
 });
 const ground = new THREE.Mesh(groundGeomtery, groundMaterial);
@@ -227,6 +216,7 @@ const table = new THREE.Mesh(tableGeometry, tableMaterial);
 table.rotation.x = -0.5 * Math.PI;
 table.position.y -= 5.1;
 table.geometry.computeBoundingBox();
+table.castShadow = true;
 scene.add(table);
 const tableBox = new THREE.Box3();
 
@@ -257,19 +247,7 @@ paddle2.position.z = -15;
 scene.add(paddle1);
 scene.add(paddle2);
 
-const pillarGeometry = new THREE.BoxGeometry(2, 20, 2);
-const pillarMaterial = new THREE.MeshStandardMaterial({
-  color: 0x909acf,
-});
-
-const pillar2 = new THREE.Mesh(pillarGeometry, pillarMaterial);
-pillar2.position.x = 20;
-pillar2.position.z += 5;
-scene.add(pillar2);
-
 const onKeyDown = function (event) {
-  const prevPosition = camera.position.clone();
-
   switch (event.code) {
     case "ArrowRight":
       movePaddleRight = true;
@@ -400,12 +378,13 @@ function animate() {
 renderer.setAnimationLoop(animate);
 
 function resetBall(loser) {
+  ball.position.setX(0);
+  ball.position.setZ(0);
   if (loser == 1) {
     ballDirZ = -1;
   } else {
     ballDirZ = 1;
   }
-
   ballDirX = 1;
 }
 
@@ -414,9 +393,9 @@ function ballLogic() {
     resetBall(2);
   } else if (ball.position.z >= 15) {
     resetBall(1);
-  } else if (ball.position.x <= -10) {
+  } else if (ball.position.x < -9.5) {
     ballDirX = -ballDirX;
-  } else if (ball.position.x >= 10) {
+  } else if (ball.position.x > 9.5) {
     ballDirX = -ballDirX;
   }
 
@@ -425,35 +404,27 @@ function ballLogic() {
 }
 
 function paddleLogic() {
-  if (ball.position.z >= paddle1.position.z) {
+  if (ball.position.z >= paddle1.position.z - 0.9) {
     if (
-      ball.position.x <= paddle1.position.x + 0.5 &&
-      ball.position.x >= paddle1.position.x - 0.5
+      ball.position.x <= paddle1.position.x + 1.1 &&
+      ball.position.x >= paddle1.position.x - 1.1
     ) {
-      paddle1.material.color.set("#ff0000");
+      paddle1.material.color.set("green");
       ballDirZ = -ballDirZ;
-    } else {
-      paddle1.material.color.set("#00ff00");
-      ball.position.setX(0);
-      ball.position.setZ(0);
     }
-  } else if (ball.position.z <= paddle2.position.z) {
+  } else if (ball.position.z <= paddle2.position.z + 0.9) {
     if (
-      ball.position.x <= paddle2.position.x + 0.5 &&
-      ball.position.x >= paddle2.position.x - 0.5
+      ball.position.x <= paddle2.position.x + 1.1 &&
+      ball.position.x >= paddle2.position.x - 1.1
     ) {
-      paddle2.material.color.set("#ff0000");
+      paddle2.material.color.set("green");
       ballDirZ = -ballDirZ;
-    } else {
-      paddle2.material.color.set("#00ff00");
-      ball.position.setX(0);
-      ball.position.setZ(0);
     }
   }
 }
 
 function cpuPaddleLogic() {
-  paddle2DirX = (ball.position.x - paddle2.position.x) * 0.2;
+  paddle2DirX = (ball.position.x - paddle2.position.x) * paddleSpeed;
   if (Math.abs(paddle2DirX) <= paddleSpeed) {
     paddle2.position.x += paddle2DirX;
   } else {
@@ -467,13 +438,13 @@ function cpuPaddleLogic() {
 
 function playerPaddleLogic() {
   if (movePaddleLeft) {
-    if (paddle1.position.x > -15) {
+    if (paddle1.position.x >= -15) {
       paddle1DirX = -paddleSpeed * 0.5;
     } else {
       paddle1DirX = 0;
     }
   } else if (movePaddleRight) {
-    if (paddle1.position.x < 15) {
+    if (paddle1.position.x <= 15) {
       paddle1DirX = paddleSpeed * 0.5;
     } else {
       paddle1DirX = 0;
